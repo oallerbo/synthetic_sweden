@@ -1,0 +1,271 @@
+\title{Synthetic Sweden}
+\author{Oskar Allerbo}
+\documentclass[12pt]{article}
+\begin{document}
+\section{Baseline Synthetic Population}
+\begin{itemize}
+\item
+IPF is done on household level for attributes age, gender, marital status and
+income, to generate a joint distribution.
+\item
+IPF takes as input an $n$-dimensional joint distribution and $n$ one dimensional
+marginal distributions and then modifies the joint distribution to match the
+marginal distributions. The new joint distribution is the maximum liklihood
+estimation given that the margins shall fit. 
+\item
+Households are picked from the PUMS according to the distribution above. The
+individuals come with the household.
+\end{itemize}
+
+\section{Locations}
+\begin{itemize}
+\item
+It is known how many households there shall be within the geographical unit.
+\item
+Households are placed along roads, with single person households more likely
+to be placed along smaller streets.
+\item
+Households are assigned to households locations.
+\item
+Activity locations are assigned somehow.
+\item
+People are assigned locations for work/school where the probability to pick
+work/school location $j$, given home location $i$ is $P(j|i) =
+\frac{c_je^{b_mT_{ij}}}{\sum_{j'} c_{j'}e^{b_mT_{ij'}}}$, where $c_j$ is the capacity
+of location $j$, $T_{ij}$ is the travel time between $i$ and $j$ and $b_m$ is a
+travel mode coefficient.
+\item
+To speed up calculations only locations within a certain radius of the home
+location are considered.
+\item
+People are assigned locations for other activities, taking place between home
+and work/shool with probability to pick location $k$ given by $P(k|j,i) =
+\frac{c_ke^{b_{m1}T_{jk} + b_{m2}T_{ik}}}{\sum_{k'} c_ke^{b_{m1}T_{jk'} +
+b_{m2}T_{ik'}}}$, with coefficients as before.
+\end{itemize}
+
+\section{Schedules}
+\begin{itemize}
+\item
+There is survey data with real people with real schedules, doing activities like being
+at home, being at work, being in a shop and so on.
+\item
+Synthetic people are compared to the survey people and assigned the schedule of
+the survey person that they are most similar.
+\item
+Only the activities are assigned, the activity locations used are the ones
+perviously assigned to the synthetic people.
+\item
+Similarity is measured in the following way:
+\begin{itemize}
+\item
+For each survey person a vector with the sum of the total times spent at different
+activities is created: $\vec{Y} = (T_{\textrm{home}}, T_{\textrm{work}},
+T_{\textrm{shop}}, ...)$
+\item 
+All the attributes of the survey persons are put in a vector $\vec{X}$, which
+can contain a mix of continueous and catogrical variables. Maybe the age is
+continues, while the income is in one of three bins, then $\vec{X}$ might look
+like $(37, 0, 1, 0, ...)$ for a 37 year old with middle high income.
+\item
+Using linear regression a model is calculated which models $\vec{Y_i} =
+\vec{X_i}\vec{\beta_i}$, for each activity $i$.
+\item
+Using this model times spent at activities are calculated for all synthetic
+persons and all survey persons. Note that the survey person now get new, fitted,
+times. This to make sure that two person with identical attributes also will
+have identical times, since the times will be used to measure the person-person
+distances.
+\item
+The distance between two persons is defined as the Mahalanobis distance between
+their $\vec{Y}$ vectors. The Mahalanobis distance is like the Euclidean
+distance, but with all components normalized.
+\item
+The distance between two households is defined in the following way:
+\begin{itemize}
+\item
+For each person in the first household the distance to each of the persons in
+the other household is calculated and the minimum of these distances is
+remembered, i.e. the distance to the closest person in the other household.
+\item
+As the distance between the two households the biggest distance of those from
+above, i.e. the maximum of the minimum of the person-person distances.
+\end{itemize}
+\end{itemize}
+\item
+Now assigning schedules to synthetic persons is done in the following way:
+\begin{itemize}
+\item
+A synthetic household is selected.
+\item
+The most similar survey household is found.
+\item
+Each person in the synthetic household is assigned the schedule of the person in
+the survey household they are most similar. Note that this might lead synthetic
+persons within the household having identical schedules.
+\end{itemize}
+\end{itemize}
+
+\section{Questions}
+\begin{itemize}
+\item
+Is IPF done on household level and then individuals are picked together with
+households?
+\item 
+How are person things, like sex, measured on household level?
+\item
+What is the PUMA size in Sweden?
+\item
+When do you stop picking, when the amount of individuals are correct or the
+amount of households?
+\item
+Are the individuals somehow changed or is the same individual present many
+times?
+\item
+How is age transformed from bin to actual age? Uniform distribution?
+\item
+When a household is sampled from a bin, is there any process to pick different
+households at different samples?
+\\
+\item
+What are the geographical units in Sweden? län?
+\item
+What do the different hloctypes mean? 1, 2, 4, 49.
+\item
+When households are placed at household locations, are the household properties
+taken into account when assigning it to a hloctype?
+\item
+How are activity locations assigned?
+\item 
+How are activity locations chosen when there are multiple activities between
+anchor locations?
+\end{itemize}
+
+\section{Attributes}
+\subsection{agep}
+\begin{itemize}
+\item All numbers in [0, 99] represented
+\end{itemize}
+
+\subsection{sex}
+\begin{itemize}
+\item 1, 2
+\item E-mail from Eric:
+\begin{itemize}
+\item 1 Male
+\item 2 Female
+\end{itemize}
+\end{itemize}
+
+\subsection{maritalb}
+\begin{itemize}
+\item 1, 2, 4, 5, 6
+\item maritala: LEGAL MARITAL STATUS [1]
+\begin{itemize}
+\item 01 Married 
+\item 02 In a civil partnership 
+\item 03 Separated (still legally married) 
+\item 04 Separated (still in a civil partnership) 
+\item 05 Divorced 
+\item 06 Widowed 
+\item 07 Formerly in civil partnership, now dissolved 
+\item 08 Formerly in civil partnership, partner died 
+\item 09 Never married and never in civil partnership 
+\item 77 Refusal 
+\item 88 Don't know 
+\item 99 No answer 
+\end{itemize}
+\end{itemize}
+
+\subsection{tporgwk}
+\begin{itemize}
+\item -1, 1, 2, 3, 4, 5, 6, 66, 88
+\item WHAT TYPE OF ORGANISATION WORK/WORKED FOR [1]
+\begin{itemize}
+\item 01 Central or local government 
+\item 02 Other public sector (such as education and health) 
+\item 03 A state owned enterprise 
+\item 04 A private firm 
+\item 05 Self employed 
+\item 06 Other                                                  
+\item 66 Not applicable 
+\item 77 Refusal                                            
+\item 88 Don’t know 
+\item 99 No answer
+\end{itemize}
+\end{itemize}
+
+\subsection{iscoco}
+\begin{itemize}
+\item 233 numbers, -1, 100, 66666, 99999, and some numbers in [1110, 9320].
+\item OCCUPATION, ISCO88 (COM) [1]
+\begin{itemize}
+\item 66666 Not applicable 
+\item 77777 Refusal
+\item 88888 Don’t know 
+\item 99999 No answer 
+\end{itemize}
+\item
+ISCO = International Standard Classification of Occupations. ISCO-88
+Ex: 9212=Livstock farm labourers. [3]
+\end{itemize}
+
+\subsection{hlthmp}
+\begin{itemize}
+\item -1, 1, 2, 3
+\item hlthhmp: HAMPERED IN DAILY ACTIVITIES BY ILLNESS/DISABILITY/INFIRMARY/MEN
+TAL PROBLEM [1]
+\begin{itemize}
+\item 1 Yes a lot 
+\item 2 Yes to some extent 
+\item 3 No                                                          
+\item 7 Refusal                                            
+\item 8 Don’t know 
+\item 9 No answer 
+\end{itemize}
+\end{itemize}
+
+\subsection{edlvdse}
+\begin{itemize}
+\item -1, [1, 20], 8888, 9999
+\item edlvdxx: HIGHEST LEVEL OF EDUCATION, [COUNTRY] [2]
+\begin{itemize}
+\item 5555 Other
+\item 7777 Refusal
+\item 8888 Don’t know                                
+\item 9999 No              
+\end{itemize}
+\end{itemize}
+
+\subsection{income}
+\begin{itemize}
+\item -1, [1, 10]
+\end{itemize}
+
+\subsection{hloctype}
+\begin{itemize}
+\item 1, 2, 9, 49
+\end{itemize}
+
+\subsection{activity types}
+\begin{itemize}
+\item E-mail from Eric:
+\begin{itemize}
+\item 1 home
+\item 2 work
+\item 3 shopping
+\item 4 other
+\item 5 school
+\item 6 college
+\end{itemize}
+\end{itemize}
+
+\begin{itemize}
+\item
+1 https://www.europeansocialsurvey.org/docs/round4/survey/ESS4\_data\_protocol\_e01\_2.pdf
+\item
+2 https://www.europeansocialsurvey.org/docs/round5/survey/ESS5\_data\_protocol\_e02\_4.pdf
+\item
+3 http://www.ilo.org/public/english/bureau/stat/isco/isco08/index.htm
+\end{itemize}
+\end{document}
