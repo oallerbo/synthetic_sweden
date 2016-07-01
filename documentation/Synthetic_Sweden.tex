@@ -5,7 +5,7 @@
 \section{Baseline Synthetic Population}
 \begin{itemize}
 \item
-IPF is done on household level for attributes age, gender, marital status and
+IPF is done on individualsfor attributes age, gender, marital status and
 income, to generate a joint distribution.
 \item
 IPF takes as input an $n$-dimensional joint distribution and $n$ one dimensional
@@ -13,27 +13,41 @@ marginal distributions and then modifies the joint distribution to match the
 marginal distributions. The new joint distribution is the maximum liklihood
 estimation given that the margins shall fit. 
 \item
-Households are picked from the PUMS according to the distribution above. The
-individuals come with the household.
+CART trees are made based on the attributes used in the IPF. Each time a
+person is added to the synthetic population a profile is sampled from the
+distribution given by the IPF and then a PUMS person in the corresponding CART leaf
+node is sampled uniformly. In this way also attributes that are not considered
+in the IPF are added to the synthetic population.
+\item
+Age is transformed from an interval to a number assuming uniform distribution
+within the interval.
+\item
+Household composition data is used to group the individuals into households.
 \end{itemize}
 
 \section{Locations}
 \begin{itemize}
 \item
-It is known how many households there shall be within the geographical unit.
+Houses come in four categories, based on how many households it can host: 1, 2-8,
+4-48, 49-.
 \item
-Households are placed along roads, with single person households more likely
+Houses are placed along roads, with single households houses more likely
 to be placed along smaller streets.
 \item
-Households are assigned to households locations.
+Households are assigned to houses locations at random. (It would be good if e.g.
+households with high income were more likly to be assigned to single household
+houses, but that is (probably) currently not the case.)
 \item
-Activity locations are assigned somehow.
+All other activity locations are assigned based on points of interests from the
+map data. Unfortenately the points of interests do not tell the capacity of the
+location. As a result the same amount of people work at Volvo as at any cafe.
 \item
 People are assigned locations for work/school where the probability to pick
 work/school location $j$, given home location $i$ is $P(j|i) =
 \frac{c_je^{b_mT_{ij}}}{\sum_{j'} c_{j'}e^{b_mT_{ij'}}}$, where $c_j$ is the capacity
 of location $j$, $T_{ij}$ is the travel time between $i$ and $j$ and $b_m$ is a
-travel mode coefficient.
+travel mode coefficient. As mentioned earlier the capacity is unavailible for
+Sweden and thus constant.
 \item
 To speed up calculations only locations within a certain radius of the home
 location are considered.
@@ -109,36 +123,11 @@ persons within the household having identical schedules.
 \section{Questions}
 \begin{itemize}
 \item
-Is IPF done on household level and then individuals are picked together with
-households?
-\item 
-How are person things, like sex, measured on household level?
-\item
-What is the PUMA size in Sweden?
-\item
-When do you stop picking, when the amount of individuals are correct or the
-amount of households?
-\item
 Are the individuals somehow changed or is the same individual present many
 times?
-\item
-How is age transformed from bin to actual age? Uniform distribution?
-\item
-When a household is sampled from a bin, is there any process to pick different
-households at different samples?
-\\
-\item
-What are the geographical units in Sweden? län?
-\item
-What do the different hloctypes mean? 1, 2, 4, 49.
-\item
-When households are placed at household locations, are the household properties
-taken into account when assigning it to a hloctype?
-\item
-How are activity locations assigned?
 \item 
 How are activity locations chosen when there are multiple activities between
-anchor locations?
+anchor locations? Henning does not know this.
 \end{itemize}
 
 \section{Attributes}
@@ -245,6 +234,7 @@ TAL PROBLEM [1]
 \subsection{hloctype}
 \begin{itemize}
 \item 1, 2, 9, 49
+\item Skype with Henning: Number of households in the house. Probably intervals.
 \end{itemize}
 
 \subsection{activity types}

@@ -7,7 +7,13 @@ hh$col = hh$hloctype
 hh$col[hh$col==9]=3
 hh$col[hh$col==49]=4
 hh$col = hh$col + 1
+#colors: (1: black,) 2: red, 3: green, 4: blue, 5: cyan, (6: magenta, 7: yellow, 8: gray)
 
+#För att plotta OSM-karta. Men jag vet ännu inte hur man lägger en scatter plot på kartan.
+#library(OpenStreetMap)
+#library(rgdal)
+# map <- openmap(c(57.85,11.7), c(57.55,12.2))
+#plot(map)
 
 #Gothenburg
 works_got = works[works$zone==20298983,]
