@@ -10,7 +10,7 @@ def map_purpose(purpose):
     return 'home'
   if purpose == 2:
     return 'work'
-  if purpose == 3: #shopping
+  if purpose == 3:
     return 'shopping'
   if purpose == 4:
     return 'other'
@@ -39,12 +39,15 @@ except:
   ngot_locs_ids = set(ngot_locs_df['#id'].values.tolist())
 
   #Get persons doing things outside Gothenburg
-  acts_df = pd.read_csv('../VT/sweden_activities_v3.txt', delimiter=r'\s+')[['pid', 'purpose', 'starttime', 'duration', 'location']]
+  acts_df = pd.read_csv('../VT/sweden_activities_v3.txt', delimiter=r'\s+')[['pid', 'anum', 'purpose', 'starttime', 'duration', 'location']]
   ngot_acts_df = acts_df[acts_df['location'].isin(ngot_locs_ids)]
   ngot_acts_pids = set(ngot_acts_df['pid'].values.tolist())
 
   #Remove activities outside Gothenburg
   got_acts_df = acts_df[~acts_df['pid'].isin(ngot_acts_pids)]
+
+  #Sort
+  got_acts_df = got_acts_df.sort_values(['pid','anum'])
 
   #Get persons in Gothenburg that are at home some time and
   #Remove persons that are never at home
@@ -64,21 +67,24 @@ except:
   acts_w_got_locs_df = pd.merge(got_acts_df, locs_df, left_on='location', right_on='#id', how='left')
   acts_w_got_locs_df.to_csv('../data/acts_w_got_locs.csv', index=False)
 
-acts_w_got_locs_df = acts_w_got_locs_df[acts_w_got_locs_df['pid'] < 5654400] # min('pid') == 5654328
+#acts_w_got_locs_df = acts_w_got_locs_df[acts_w_got_locs_df['pid'] < 5800000] # min('pid') == 5654328
 print 'csv file read.'
 print 'Legs: {0}'.format(len(acts_w_got_locs_df.index))
+counter = 0
 
-xml_lines = ['<?xml version="1.0" ?>\n', '<!DOCTYPE plans SYSTEM "http://www.matsim.org/files/dtd/plans_v4.dtd">\n', '<plans>\n', 'dummy1\n', 'dummy2\n']
 old_pid = 0
 first = True
+xml_lines = ['<?xml version="1.0" ?>\n', '<!DOCTYPE plans SYSTEM "http://www.matsim.org/files/dtd/plans_v4.dtd">\n', '<plans>\n']
 for index, row in acts_w_got_locs_df.iterrows():
   pid = int(row['pid'])
   if pid != old_pid:
-    xml_lines = xml_lines[:-2] #remove the last leg
-    xml_lines += ['\t</plan>\n', '</person>\n', '\n'] #close previous person
     if first:
-      xml_lines = xml_lines[:-3] #remove closing if first person
       first = False
+    else:
+      xml_lines = xml_lines[:-2] #remove the last leg
+      xml_lines[-1] = xml_lines[-1][:-16] + ' />\n' #remove last duration
+      xml_lines += ['\t</plan>\n', '</person>\n', '\n'] #close previous person
+
     xml_lines += ['<person id="' + str(pid) + '">\n', '\t<plan>\n']
     time_string = 'end_time="' + format_time(int(row['starttime']) + int(row['duration']))
   else:
@@ -90,7 +96,13 @@ for index, row in acts_w_got_locs_df.iterrows():
 
   old_pid = pid
 
+  counter += 1
+  if counter % 10000 == 0:
+    print counter
+
+
 xml_lines = xml_lines[:-2] #remove the last leg
+xml_lines[-1] = xml_lines[-1][:-16] + ' />\n' #remove last duration
 xml_lines += ['\t</plan>\n', '</person>\n', '\n'] #close previous person
 xml_lines += ['</plans>\n'] #close plans
 
