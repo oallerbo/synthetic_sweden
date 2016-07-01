@@ -70,8 +70,12 @@ except:
 #acts_w_got_locs_df = acts_w_got_locs_df[acts_w_got_locs_df['pid'] < 5800000] # min('pid') == 5654328
 print 'csv file read.'
 print 'Legs: {0}'.format(len(acts_w_got_locs_df.index))
-counter = 0
 
+#Clear plans.xml
+f = open('../data/plans.xml', 'w')
+f.close()
+
+counter = 0
 old_pid = 0
 first = True
 xml_lines = ['<?xml version="1.0" ?>\n', '<!DOCTYPE plans SYSTEM "http://www.matsim.org/files/dtd/plans_v4.dtd">\n', '<plans>\n']
@@ -100,13 +104,21 @@ for index, row in acts_w_got_locs_df.iterrows():
   if counter % 10000 == 0:
     print counter
 
+    #Write things to file and empty xml_lines list. This is to improve speed.
+    #Keep the last lines so the removal of last leg and last duration is possible.
+    #TODO is 10000 optimal?
+    f = open('../data/plans.xml', 'a')
+    f.writelines(xml_lines[:-3])
+    f.close()
+    xml_lines = xml_lines[-3:]
+
 
 xml_lines = xml_lines[:-2] #remove the last leg
 xml_lines[-1] = xml_lines[-1][:-16] + ' />\n' #remove last duration
 xml_lines += ['\t</plan>\n', '</person>\n', '\n'] #close previous person
 xml_lines += ['</plans>\n'] #close plans
 
-f = open('../data/plans.xml', 'w')
+f = open('../data/plans.xml', 'a')
 f.writelines(xml_lines)
 f.close()
 
